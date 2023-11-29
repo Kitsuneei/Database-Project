@@ -63,109 +63,125 @@ class ExternalMergeSort:
         
 
         self.merge_step(num_runs)
+        self.collapse_disk()
         return self.disk
     
     def optimized_external_merge_sort(self, k):
         
         # Optimized merge sort makes use of a sharpening filter 
         sharpening_filter = None
+        premature_merge_needed = False
 
-        # Ths optimized version focuses on problem instances where k is less than the size of main memory
-        if k < self.M:
+        if k > self.M:
+            premature_merge_needed = True
+            in_disk = 0
+       
 
-            # If the block-size to main-memory-size ratio is not conducive of a sort, alert the user and terminate
-            if (self.M // self.B) <= 1:
-                print("Set a reasonable ratio for block-size to main-memory-size (must be able to fit more than one block in main memory).")
-                exit(1)
+        # If the block-size to main-memory-size ratio is not conducive of a sort, alert the user and terminate
+        if (self.M // self.B) <= 1:
+            print("Set a reasonable ratio for block-size to main-memory-size (must be able to fit more than one block in main memory).")
+            exit(1)
+    
+        # Variable to keep track of the number of runs generated
+        num_runs = 0
+
+        # A disk pointer to keep track of the location in the disk
+        disk_pointer = 0
+        rows_left = len(self.disk)
         
-            # Variable to keep track of the number of runs generated
-            num_runs = 0
+        while not self.all_elements_are_arrays():
 
-            # A disk pointer to keep track of the location in the disk
-            disk_pointer = 0
-            rows_left = len(self.disk)
+            self.tracker.append([num_runs+1,rows_left,sharpening_filter, self.num_IO_operations])
+            # Bring from disk a section of elements that are the size of main memory
+            self.main_memory = self.disk[num_runs:num_runs+self.M]
+            rows_left -= self.M
             
-            while not self.all_elements_are_arrays():
+            # Move the disk pointer
+            disk_pointer = num_runs + self.M
 
-                self.tracker.append([num_runs+1,rows_left,sharpening_filter, self.num_IO_operations])
-                # Bring from disk a section of elements that are the size of main memory
-                self.main_memory = self.disk[num_runs:num_runs+self.M]
-                rows_left -= self.M
+            if sharpening_filter != None:
+
+                # Use sharpening filter to filter out input as it arrives
+                self.main_memory = [value for value in self.main_memory if value <= sharpening_filter]
                 
-                # Move the disk pointer
-                disk_pointer = num_runs + self.M
+                # The filter is refinable in this case
+                refinable = True
 
-                if sharpening_filter != None:
+                # After filtering, we want to load more elements into main memory, but only do so if we have less than k elements loaded
+                while (len(self.main_memory) < min(self.M,k)):
 
-                    # Use sharpening filter to filter out input as it arrives
+                    # Refill main memory will new additional items
+                    additional_items = self.disk[disk_pointer:disk_pointer+self.M-len(self.main_memory)]
+                    disk_pointer += self.M-len(self.main_memory)
+                    rows_left -= self.M-len(self.main_memory)
+
+                    # If there are no more items to process, there is no more need to refine the filter and we can halt the reading process
+                    if additional_items == []:
+                        refinable = False
+                        break
+
+                    # Add the additional items to main memory
+                    self.main_memory.extend(additional_items)
+                    
+                    # We had to do an I/O to read from disk
+                    self.num_IO_operations +=1
+
+                    # Filter from main memory again using the sharpening filter, and repeat
                     self.main_memory = [value for value in self.main_memory if value <= sharpening_filter]
                     
-                    # The filter is refinable in this case
-                    refinable = True
+                # Sort the main memory
+                self.main_memory = sorted(self.main_memory)
+                
 
-                    # After filtering, we want to load more elements into main memory, but only do so if we have less than k elements loaded
-                    while (len(self.main_memory) < k):
+                if refinable and k < self.M:
 
-                        # Refill main memory will new additional items
-                        additional_items = self.disk[disk_pointer:disk_pointer+self.M-len(self.main_memory)]
-                        disk_pointer += self.M-len(self.main_memory)
-                        rows_left -= self.M-len(self.main_memory)
-
-                        # If there are no more items to process, there is no more need to refine the filter and we can halt the reading process
-                        if additional_items == []:
-                            refinable = False
-                            break
-
-                        # Add the additional items to main memory
-                        self.main_memory.extend(additional_items)
-                        
-                        # We had to do an I/O to read from disk
-                        self.num_IO_operations +=1
-
-                        # Filter from main memory again using the sharpening filter, and repeat
-                        self.main_memory = [value for value in self.main_memory if value <= sharpening_filter]
-                        
-                    # Sort the main memory
-                    self.main_memory = sorted(self.main_memory)
-                    
-
-                    if refinable:
-
-                        # Refine the sharpening filter based on the current run
-                        sharpening_filter = self.main_memory[k-1]
-                        
-                        # Use the new sharpening filter to refine the current run one last time before writing it to disk
-                        self.main_memory = self.main_memory[0:k]
-
-                # Else block executes if we do not have a sharpening filter yet
-                else:
-
-                    # Sort them in main memory using a classic sort
-                    self.main_memory = sorted(self.main_memory)
-                    
-                    # Derive a sharpening filter based on the first run
+                    # Refine the sharpening filter based on the current run
                     sharpening_filter = self.main_memory[k-1]
                     
-                    # Filter the first run
+                    # Use the new sharpening filter to refine the current run one last time before writing it to disk
                     self.main_memory = self.main_memory[0:k]
+
+            # Else block executes if we do not have a sharpening filter yet
+            elif k < self.M:
+
+                # Sort them in main memory using a classic sort
+                self.main_memory = sorted(self.main_memory)
+                
+                # Derive a sharpening filter based on the first run
+                sharpening_filter = self.main_memory[k-1]
+                
+                # Filter the first run
+                self.main_memory = self.main_memory[0:k]
+    
+
+            # Write the sorted run back to disk
+            self.main_memory = sorted(self.main_memory)
+
+            del self.disk[num_runs:disk_pointer]
+            self.disk.insert(num_runs, self.main_memory)
+            num_runs+=1
+            
+
+            # Writing costs one I/O
+            self.num_IO_operations +=1
+
+            if premature_merge_needed:
+                in_disk += self.M
+                if in_disk > k:
+                    self.merge_step(num_runs)
+                    del self.disk[0]
+                    premature_merge_needed = False
+                    sharpening_filter = self.disk[0][k-1]
+                   
+        
+        # Once all the pre-processing and run generation are done, perform the merge step
+        self.merge_step(num_runs)
+        self.collapse_disk()
         
 
-                # Write the sorted run back to disk
-                del self.disk[num_runs:disk_pointer]
-                self.disk.insert(num_runs, self.main_memory)
-                num_runs+=1
-
-                # Writing costs one I/O
-                self.num_IO_operations +=1
-            
-            # Once all the pre-processing and run generation are done, perform the merge step
-            self.merge_step(num_runs)
-            
-
-            return self.disk
+        return self.disk
         
-        # K >= M, so warn and terminate
-        print("Failed Optimized Sort. Set a k that is smaller than the main memory size. For larger k, see histogram approach.")
+        
 
 
     def top_k_with_traditional_external_merge_sort(self, k):
@@ -285,6 +301,8 @@ class ExternalMergeSort:
                     if is_last_flag:
                         if self.disk[run_index]:
                             self.load_block_from_disk(run_index)
+                    
+                    
                 
                 # Write the remainder of what is in the output block to the disk
                 self.write_output_block_to_disk()
@@ -306,7 +324,8 @@ class ExternalMergeSort:
             current_run = 0
             next_phase_num_runs = 0
             
+            
         
         # Collapse the disk into a single output array
-        self.collapse_disk()
+        # self.collapse_disk()
         
