@@ -1,40 +1,24 @@
-import external_merge_sort as tems
+import top_k_with_external_merge_sort as ems
 import pandas as pd
-import os
-import sys
-
-if len(sys.argv) != 2:
-    print("Usage: python external_merge_sort_drvier.py <numeric_dataset_name>")
-    sys.exit(1)
-
-# Get the filename from the command line argument
-filename = sys.argv[1]
-
-# Get the current working directory
-cwd = os.getcwd()
-
-# Construct the full path by joining the cwd and the filename
-file_path = os.path.join(cwd, filename)
+import random
 
 # Change the parameters as needed
 M = 1000        # Main-memory size
-B = 256        # Block size
-K = 800         # K-value
+B = 128         # Block size
+K = 500        # K-value
+N = 1000000     # Size of test-case
 
 # Initialize an empty list as the test case
 test_case = []
+solution = []
 
-# Read the values from the file and store them in the array
-with open(file_path, "r") as file:
-    for line in file:
-        # Convert the line to a float and append it to the array
-        value = float(line.strip())
-        test_case.append(value)
+# Initialize N random numbers between 0 and 1
+test_case = [round(random.random(), 8) for _ in range(N)]
         
 # This will be the solution
 solution = sorted(test_case)[:K]
 
-print("Read Dataset")
+print("Generated test case with parms: [M={},B={},K={},N={}]".format(M,B,K,N))
 
 tracker = None
 
@@ -43,8 +27,8 @@ disk_trad = test_case.copy()
 disk_opt = test_case.copy()
 
 # Objects for traditional and optimized merge sort
-trad = tems.ExternalMergeSort(M, B, disk_trad)
-opt = tems.ExternalMergeSort(M, B, disk_opt)      
+trad = ems.ExternalMergeSort(M, B, disk_trad)
+opt = ems.ExternalMergeSort(M, B, disk_opt)      
 
 # Arrays with the top-k elements
 trad_ans = trad.top_k_with_traditional_external_merge_sort(K)
@@ -53,19 +37,17 @@ opt_ans = opt.top_k_with_optimized_external_merge_sort(K)
 tracker = opt.tracker
 
 # Write the tracker/metrics to a CSV
-# Only the optimized exteral merge sort implementation has its metrics tracked and written, because there is a cutoff filter
-# The traditional implementation has trivial metrics that are not interesting to the problem
 df = pd.DataFrame(tracker, columns = ['Run','Remaining Input Rows', 'Cutoff Key (before each run)', 'Number of I/O Ops'])
-csv_file_path = "metrics_{}.csv".format(filename)
+csv_file_path = "table_metrics.csv"
 df.to_csv(csv_file_path, index=False)
 
+if trad_ans == opt_ans and opt_ans == solution:
+    print(opt_ans)
+    print("Traditional External Merge Sort: Passed\nOptimized External Merge Sort: Passed")
+    exit(0)
 
-if trad_ans == solution:
-    print("Traditional External Merge Sort: Passed")
-else:
+if trad_ans != solution:
     print("Traditional External Merge Sort: Failed")
 
-if opt_ans == solution:
-    print("Optimized External Merge Sort: Passed")
-else:
+if opt_ans != solution:
     print("Optimized External Merge Sort: Failed")
