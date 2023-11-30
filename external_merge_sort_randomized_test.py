@@ -4,8 +4,8 @@ import random
 
 # Change the parameters as needed
 M = 1000        # Main-memory size
-B = 128         # Block size
-K = 500        # K-value
+B = 64         # Block size
+K = 5000        # K-value
 N = 1000000     # Size of test-case
 
 # Initialize an empty list as the test case

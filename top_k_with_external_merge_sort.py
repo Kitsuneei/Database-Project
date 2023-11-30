@@ -134,7 +134,7 @@ class ExternalMergeSort:
                 self.main_memory = sorted(self.main_memory)
                 
 
-                if refinable and k < self.M:
+                if refinable and k <= self.M:
 
                     # Refine the sharpening filter based on the current run
                     sharpening_filter = self.main_memory[k-1]
@@ -143,7 +143,7 @@ class ExternalMergeSort:
                     self.main_memory = self.main_memory[0:k]
 
             # Else block executes if we do not have a sharpening filter yet
-            elif k < self.M:
+            elif k <= self.M:
 
                 # Sort them in main memory using a classic sort
                 self.main_memory = sorted(self.main_memory)
