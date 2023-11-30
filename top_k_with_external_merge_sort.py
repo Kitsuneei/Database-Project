@@ -71,6 +71,7 @@ class ExternalMergeSort:
         # Optimized merge sort makes use of a sharpening filter 
         sharpening_filter = None
         premature_merge_needed = False
+        is_first_premature_merge = True
 
         if k > self.M:
             premature_merge_needed = True
@@ -165,14 +166,28 @@ class ExternalMergeSort:
             # Writing costs one I/O
             self.num_IO_operations +=1
 
+            # If a premature merge is needed for k > M
             if premature_merge_needed:
+
+                # How much we have written since last premature merge
                 in_disk += self.M
+
+                # We have enough for a premature merge
                 if in_disk > k:
-                    self.merge_step(num_runs)
-                    del self.disk[0]
-                    premature_merge_needed = False
-                    sharpening_filter = self.disk[0][k-1]
-                   
+                    in_disk = 0
+                    if is_first_premature_merge:
+                        self.merge_step(num_runs)
+                        del self.disk[0]
+                        sharpening_filter = self.disk[0][k-1]
+                        is_first_premature_merge = False
+                    else:
+                        temp = self.disk[num_runs-1]
+                        self.disk[num_runs-1] = []
+                        self.disk[1] = temp
+                        self.merge_step(2)
+                        del self.disk[0]
+                        sharpening_filter = self.disk[0][k-1]
+                        
         
         # Once all the pre-processing and run generation are done, perform the merge step
         self.merge_step(num_runs)
