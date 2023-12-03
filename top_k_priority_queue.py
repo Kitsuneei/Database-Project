@@ -49,6 +49,9 @@ def top_k_PQ(list, k):
 
 dataset = [] 
 
+with open('output.txt', 'w') as file:
+    file.write('Top-k Results:')
+
 #aggregate datasets into one
 for i in range(1,6):
     dataset_path = '1_Mil_Dataset_{}/basic_database.xml'.format(i)
@@ -64,4 +67,8 @@ for k in k_options:
         pq,cutoff_key = top_k_PQ(dataset[:s],k)
         print('kth Element: '+str(-pq[0]))
         print('Cutoff Key: '+ str(cutoff_key))
-        
+        pq = [-x for x in pq]
+        #write queue to file
+        with open('output.txt','a') as file:
+            file.write('\nK size: ' + str(k) + ', Data Size: ' + str(s) + '\n')
+            file.write(str(sorted(pq)) + '\n')
