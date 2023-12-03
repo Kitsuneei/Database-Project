@@ -1,6 +1,14 @@
 # Database-Project
 
-
+<h3>Priority Queue Approach</h3>
+    <h4>Experiment details</h4>
+    <p>
+        <ol>
+            <li>Download the python code (top_k_priority_queue.py) and datasets.</li>
+            <li>Run code as is. Final cutoff key and kth element is returned to the user. Top-k queues are written to a generated output.txt</li>
+         </ol> 
+    </p>
+    
 <h3>External Merge Sort Algorithms</h3>
     <p>
         <ol>
