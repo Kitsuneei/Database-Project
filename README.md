@@ -5,7 +5,7 @@
     <p>
         <ol>
             <li>Download the python source files related to external merge sort (top_k_with_external_merge_sort.py, external_merge_sort_randomized_test.py, top_k_optimized_ex_merge_on_datasets.py).</li>
-            <li>Only external_merge_sort_randomized_test.py and top_k_optimized_ex_merge_on_datasets.py should be run. The first class file is instantiated in the two drivers. Below are the instructions and experiemnt details.</li>
+            <li>Only external_merge_sort_randomized_test.py and top_k_optimized_ex_merge_on_datasets.py should be run. The first class file is instantiated in the two drivers. Below are the instructions and experiment details.</li>
         </ol>
     </p>
     <h4>Experiment details</h4>
