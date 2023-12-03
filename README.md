@@ -13,13 +13,13 @@
             <ol>
                 <li>These instructions refer to the python file external_merge_sort_randomized_test.py</li>
                 <li>You may run the code as is. It is verbose in the console by nature, but metrics will also be generated in a table_metrics.csv file.</li>
-                <li>You may change the parameters within the code itself (M, B, K, N) to valid values. The code will alert if the values are invalid. The original values are what was used our paper.</li>
+                <li>You may change the parameters within the code itself (M, B, K, N) to valid values. The code will alert if the values are invalid. The original values are what was used in our paper.</li>
             </ol>
         </p>
     <h4>Experiment details</h4>
         <p>
             <ol>
-                <li>These instruction refer to the python file top_k_optimized_ex_merge_on_datasets.py.</li>
+                <li>These instructions refer to the python file top_k_optimized_ex_merge_on_datasets.py.</li>
                 <li>Download the XML datasets in the repository.</li>
                 <li>Unzip and rename the files such that they can be read via the python code.</li>
                 <li>You may run the code as is. It is verbose in the console by nature, and multiple metrics files named dataset_metrics_K_N.csv where K and N are integer parameters will be generated.</li>
