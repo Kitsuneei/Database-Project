@@ -40,7 +40,7 @@
     <h4>Experiment details</h4>
     <p>
         <ol>
-            <li>Download the python codes (top_k_with_histogramv3-Table1.py - top_k_with_histogramv3-Table5.py)</li>
+            <li>Download the python codes (top_k_with_histogramv3-Figure3.py - top_k_with_histogramv3-Figure9.py)</li>
             <li>Run the codes as is. The results from the report should be generated as a csv file under the same directory.</li>
          </ol> 
     </p>
